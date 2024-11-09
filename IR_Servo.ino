@@ -1,22 +1,22 @@
 #include <Servo.h>
 Servo myServo;
 
-// Pin Definitions
-const int irSensorPin = 2;
-const int greenLedPin = 3; // Green LED pin
+const int trigPin = 2;    //ultrasonic sensor 
+const int echoPin = 4;    //ultrasonic sensor 
+const int greenLedPin = 3; 
 
-int irState = 0;
+const int servoSebelumDetect = 0;   
+const int servoLepasDetect = 180;   
 
-// Servo positions
-const int servoSebelumDetect = 0;   // Gate closed position
-const int servoLepasDetect = 180;   // Gate open position
+long duration;
+int distance;
 
 void setup() {
-  myServo.attach(9); // Attach servo to pin 9
-  pinMode(irSensorPin, INPUT);
-  pinMode(greenLedPin, OUTPUT); // Set green LED pin as output
+  myServo.attach(9); //servo pin 9
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(greenLedPin, OUTPUT); 
 
-  // Initialize the servo and LED
   myServo.write(servoSebelumDetect);
   digitalWrite(greenLedPin, LOW);
   
@@ -24,16 +24,28 @@ void setup() {
 }
 
 void loop() {
-  irState = digitalRead(irSensorPin); // Read IR sensor state
 
-  if (irState == LOW) { // Object detected
-    myServo.write(servoLepasDetect);   // Open the gate
-    digitalWrite(greenLedPin, HIGH);   // Turn on the green LED
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  
+  distance = duration * 0.034 / 2;
+  Serial.print("Jarak: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 0 && distance <= 30) { 
+    myServo.write(servoLepasDetect);  
+    digitalWrite(greenLedPin, HIGH);   
     Serial.println("Ada objek - Pagar Buka");
-  } else { // No object detected
-    myServo.write(servoSebelumDetect); // Close the gate
-    digitalWrite(greenLedPin, LOW);    // Turn off the green LED
+  } else { 
+    myServo.write(servoSebelumDetect); 
+    digitalWrite(greenLedPin, LOW);    
     Serial.println("Tiada objek - Pagar Tutup");
   }
-  delay(100); // Small delay to avoid rapid switching
+  delay(100); 
 }
